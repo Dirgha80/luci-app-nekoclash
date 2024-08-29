@@ -113,11 +113,11 @@ jobs:
           cd ..
           echo "status=success" >> $GITHUB_OUTPUT
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-      - name: Upload IPK to release
-        uses: softprops/action-gh-release@v1
-        if: steps.compile.outputs.status == 'success'
+      - name: Generate new tag & release
+        uses: softprops/action-gh-release@v2.0.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{needs.job_check.outputs.version}}
-          files: ${{ env.FIRMWARE }}/base/luci-app-*.ipk
+          prerelease: true
+          files: "./dev/luci-app-nekoclash*.ipk"
+          tag_name: "v${{ needs.Get-Version.outputs.version }}-beta"

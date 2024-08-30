@@ -52,8 +52,8 @@ jobs:
           ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
           FEED_DIR: ${{ github.workspace }}/feeds
           PACKAGES: luci-app-nekoclash
-          echo "make package/luci-app-nekoclash/{clean,compile} -j$(nproc)"
-          make package/luci-app-nekoclash/{clean,compile} -j$(nproc)
+            echo "make package/luci-app-nekoclash/{clean,compile} -j$(nproc)"
+            make package/luci-app-nekoclash/{clean,compile} -j$(nproc)
           NO_SHFMT_CHECK: 1
         
       - name: Delivering Package

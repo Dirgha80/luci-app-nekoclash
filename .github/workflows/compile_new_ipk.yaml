@@ -41,11 +41,6 @@ jobs:
           echo "version=$(grep 'PKG_VERSION:=' ./luci-app-nekoclash/Makefile |awk -F '=' '{print $2}')" >> $GITHUB_OUTPUT
           echo "New Version: $(grep 'PKG_VERSION:=' ./luci-app-nekoclash/Makefile |awk -F '=' '{print $2}')"
 
-      - name: Clone Repository
-        uses: actions/checkout@v4
-        with:
-          ref: package
-
       - name: Current Version
         id: current_version
         run: |

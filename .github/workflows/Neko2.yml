@@ -41,7 +41,7 @@ jobs:
         run: |
               echo ""
               mkdir feeds artifacts
-              cp -rf./luci-app-nekoclash/feeds
+              cp -rf./luci-app-nekoclash ./feeds
         
       - name: Building luci-app-nekoclash
         uses: nosignals/gh-action-sdk@main

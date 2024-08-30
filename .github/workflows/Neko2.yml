@@ -42,7 +42,7 @@ jobs:
               echo ""
               git clone https://github.com/Dirgha80/luci-app-nekoclash
               mkdir feeds artifacts
-              cp -rf./luci-app-nekoclash ./feeds
+              cp -rf ./luci-app-nekoclash ./feeds
         
       - name: Building luci-app-nekoclash
         uses: nosignals/gh-action-sdk@main

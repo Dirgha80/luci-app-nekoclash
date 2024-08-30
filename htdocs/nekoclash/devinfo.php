@@ -57,6 +57,279 @@ $cpuFamily = preg_match('/^CPU family:\s+(.+)/m', $cpuInfo, $matches);
 */
 ?>
 
+
+<?php
+date_default_timezone_set('Asia/Shanghai');
+?>
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音播报系统</title>
+    <div style="display: flex; align-items: center;">
+    <label for="weather-toggle">天气播报</label>
+    <input type="checkbox" id="weather-toggle">
+    <p style="margin: 0;">当前城市：<span id="current-city">未设置</span></p>
+</div>
+
+</head>
+<body>
+    <script>
+        let city = 'Beijing'; 
+        const apiKey = 'fc8bd2637768c286c6f1ed5f1915eb22'; 
+        let weatherEnabled = true; 
+
+        function speakMessage(message) {
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = 'zh-CN';
+            speechSynthesis.speak(utterance);
+        }
+
+        function getGreeting() {
+            const hours = new Date().getHours();
+            if (hours >= 5 && hours < 12) return '早上好！';
+            if (hours >= 12 && hours < 18) return '下午好！';
+            if (hours >= 18 && hours < 22) return '晚上好！';
+            return '夜深了，注意休息！';
+        }
+
+        function speakCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const currentTime = `${hours}点${minutes}分${seconds}秒`;
+
+            const timeOfDay = (hours >= 5 && hours < 8) ? '清晨'
+                              : (hours >= 8 && hours < 11) ? '早上'
+                              : (hours >= 11 && hours < 13) ? '中午'
+                              : (hours >= 13 && hours < 18) ? '下午'
+                              : (hours >= 18 && hours < 20) ? '傍晚'
+                              : (hours >= 20 && hours < 24) ? '晚上'
+                              : '凌晨';
+
+            speakMessage(`${getGreeting()} 现在是北京时间: ${timeOfDay}${currentTime}`);
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const timeOfDay = (hours >= 5 && hours < 8) ? '清晨'
+                              : (hours >= 8 && hours < 11) ? '早上'
+                              : (hours >= 11 && hours < 13) ? '中午'
+                              : (hours >= 13 && hours < 18) ? '下午'
+                              : (hours >= 18 && hours < 20) ? '傍晚'
+                              : (hours >= 20 && hours < 24) ? '晚上'
+                              : '凌晨';
+
+            if (now.getMinutes() === 0 && now.getSeconds() === 0) {
+                speakMessage(`整点播报，现在是北京时间 ${timeOfDay} ${hours}点`);
+            }
+        }
+
+        const websites = [
+            'https://www.youtube.com/',
+            'https://www.google.com/',
+            'https://www.facebook.com/',
+            'https://www.twitter.com/',
+            'https://www.github.com/'
+        ];
+
+        function getWebsiteStatusMessage(url, status) {
+            const statusMessages = {
+                'https://www.youtube.com/': status ? 'YouTube 网站访问正常。' : '无法访问 YouTube 网站，请检查网络连接。',
+                'https://www.google.com/': status ? 'Google 网站访问正常。' : '无法访问 Google 网站，请检查网络连接。',
+                'https://www.facebook.com/': status ? 'Facebook 网站访问正常。' : '无法访问 Facebook 网站，请检查网络连接。',
+                'https://www.twitter.com/': status ? 'Twitter 网站访问正常。' : '无法访问 Twitter 网站，请检查网络连接。',
+                'https://www.github.com/': status ? 'GitHub 网站访问正常。' : '无法访问 GitHub 网站，请检查网络连接。',
+            };
+
+            return statusMessages[url] || (status ? `${url} 网站访问正常。` : `无法访问 ${url} 网站，请检查网络连接。`);
+        }
+
+        function checkWebsiteAccess(urls) {
+            const statusMessages = [];
+            let requestsCompleted = 0;
+
+            urls.forEach(url => {
+                fetch(url, { mode: 'no-cors' })
+                    .then(response => {
+                        const isAccessible = response.type === 'opaque';
+                        statusMessages.push(getWebsiteStatusMessage(url, isAccessible));
+                        
+                        if (!isAccessible && url === 'https://www.youtube.com/') {
+                            speakMessage('无法访问 YouTube 网站，请检查网络连接。');
+                        }
+                    })
+                    .catch(() => {
+                        statusMessages.push(getWebsiteStatusMessage(url, false));
+                        
+                        if (url === 'https://www.youtube.com/') {
+                            speakMessage('无法访问 YouTube 网站，请检查网络连接。');
+                        }
+                    })
+                    .finally(() => {
+                        requestsCompleted++;
+                        if (requestsCompleted === urls.length) {
+                            speakMessage(statusMessages.join(' '));
+                        }
+                    });
+            });
+        }
+
+        function getRandomPoem() {
+            const poems = [
+                '红豆生南国，春来发几枝。', '独在异乡为异客，每逢佳节倍思亲。',
+                '海上生明月，天涯共此时。', '但愿人长久，千里共婵娟。',
+                '江南好，风景旧曾谙。', '君不见黄河之水天上来，奔流到海不复回。',
+                '露从今夜白，月是故乡明。', '自古逢秋悲寂寥，我言秋日胜春朝。',
+                '两岸猿声啼不住，轻舟已过万重山。', '一去二三里，烟村四五家。',
+                '问君何为别，心逐青云行。', '风急天高猿啸哀，渚清沙白鸟飞回。',
+                '锦城虽云乐，不如早还家。', '白下驿穷冬望，红楼隔雨弄晴寒。',
+                '夜泊牛渚怀古，牛渚西江夜。', '空山新雨后，天气晚来秋。',
+                '山中相送罢，日暮掩柴扉。', '寒蝉凄切，对长亭晚，骤雨初歇。',
+                '湖上初晴后雨，水面晕开清晖。', '孤舟蓑笠翁，独钓寒江雪。',
+                '黄河远上白云间，一片孤城万仞山。', '松下问童子，言师采药去。',
+                '白云深处有人家，黄鹤楼中吹玉笛。', '枯藤老树昏鸦，小桥流水人家。',
+                '寒山转苍翠，秋水共长天一色。', '年年岁岁花相似，岁岁年年人不同。',
+                '锦江春色来天地，玉垒浮云变古今。', '天街小雨润如酥，草色遥看近却无。',
+                '长江绕郭知鱼美，苏堤春晓胜地宜。'
+            ];
+            return poems[Math.floor(Math.random() * poems.length)];
+        }
+
+        function speakRandomPoem() {
+            const poem = getRandomPoem();
+            speakMessage(`${poem}`);
+        }
+
+        function speakWeather(weather) {
+            if (!weatherEnabled) return; 
+
+            const descriptions = {
+                "clear sky": "晴天", "few clouds": "少量云", "scattered clouds": "多云",
+                "broken clouds": "多云", "shower rain": "阵雨", "rain": "雨", 
+                "light rain": "小雨", "moderate rain": "中雨", "heavy rain": "大雨",
+                "very heavy rain": "特大暴雨", "extreme rain": "极端降雨",
+                "thunderstorm": "雷暴", "thunderstorm with light rain": "雷阵雨", "thunderstorm with heavy rain": "强雷雨",
+                "snow": "雪", "light snow": "小雪", "moderate snow": "中雪", "heavy snow": "大雪",
+                "very heavy snow": "特大暴雪", "extreme snow": "极端降雪",
+                "sleet": "雨夹雪", "freezing rain": "冻雨", "mist": "薄雾",
+                "fog": "雾", "haze": "霾", "sand": "沙尘", "dust": "扬尘", "squall": "阵风",
+                "tornado": "龙卷风", "ash": "火山灰", "drizzle": "毛毛雨",
+                "overcast": "阴天", "partly cloudy": "局部多云", "cloudy": "多云",
+                "tropical storm": "热带风暴", "hurricane": "飓风", "cold": "寒冷", 
+                "hot": "炎热", "windy": "大风", "breezy": "微风", "blizzard": "暴风雪"
+            };
+
+            const weatherDescription = descriptions[weather.weather[0].description.toLowerCase()] || weather.weather[0].description;
+            const temperature = weather.main.temp;
+            const tempMax = weather.main.temp_max;
+            const tempMin = weather.main.temp_min;
+            const humidity = weather.main.humidity;
+            const windSpeed = weather.wind.speed;
+            const visibility = weather.visibility / 1000;
+
+            let message = `以下是今天${city}的天气预报：当前气温为${temperature}摄氏度，${weatherDescription}。` +
+                          `预计今天的最高气温为${tempMax}摄氏度，今晚的最低气温为${tempMin}摄氏度。`;
+
+            if (weather.rain && weather.rain['1h']) {
+                var rainProbability = weather.rain['1h'];
+                message += ` 接下来一小时有${rainProbability * 100}%的降雨概率。`;
+            } else if (weather.rain && weather.rain['3h']) {
+                var rainProbability = weather.rain['3h'];
+                message += ` 接下来三小时有${rainProbability * 100}%的降雨概率。`;
+            } else {
+                message += ' 今天降雨概率较低。';
+            }
+
+            message += ` 西南风速为每小时${windSpeed}米。` +
+                       ` 湿度为${humidity}%。`;
+
+            if (weatherDescription.includes('晴') || weatherDescription.includes('阳光明媚')) {
+                message += ` 紫外线指数适中，如果外出，请记得涂防晒霜。`;
+            } else if (weatherDescription.includes('雨') || weatherDescription.includes('阵雨') || weatherDescription.includes('雷暴')) {
+                message += ` 建议您外出时携带雨伞。`;
+            }
+
+            message += ` 能见度为${visibility}公里。` +
+                       `请注意安全，保持好心情，祝您有美好的一天！`;
+
+            speakMessage(message);
+        }
+
+        function fetchWeather() {
+            if (!weatherEnabled) return; 
+            
+            const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=zh_cn`; 
+            fetch(apiUrl)
+                .then(response => response.ok ? response.json() : Promise.reject('网络响应不正常'))
+                .then(data => {
+                    if (data.weather && data.main) {
+                        speakWeather(data);
+                    } else {
+                        console.error('无法获取天气数据');
+                    }
+                })
+                .catch(error => console.error('获取天气数据时出错:', error));
+        }
+
+        function saveCity() {
+            const cityInput = document.getElementById('city-input').value.trim();
+            const chineseCharPattern = /[\u4e00-\u9fff]/;
+            const startsWithUppercasePattern = /^[A-Z]/;
+            if (chineseCharPattern.test(cityInput)) {
+                speakMessage('请输入非中文的城市名称。');
+            } else if (!startsWithUppercasePattern.test(cityInput)) {
+                speakMessage('城市名称必须以大写英文字母开头。');
+            } else if (cityInput) {
+                const city = cityInput;
+                localStorage.setItem('city', city); 
+                document.getElementById('current-city').textContent = city;
+                speakMessage(`城市已保存为${city}，正在获取最新天气信息...`);
+                fetchWeather();
+            } else {
+                speakMessage('请输入有效的城市名称。');
+            }
+        }
+
+        document.getElementById('weather-toggle').addEventListener('change', (event) => {
+            weatherEnabled = event.target.checked;
+            localStorage.setItem('weatherEnabled', weatherEnabled); 
+            if (weatherEnabled) {
+                speakMessage('天气播报已启用。');
+                fetchWeather();
+            } else {
+                speakMessage('天气播报已关闭。');
+            }
+        });
+
+        window.onload = function() {
+            const savedCity = localStorage.getItem('city');
+            if (savedCity) {
+                city = savedCity;
+                document.getElementById('current-city').textContent = city;
+            }
+            
+            const savedWeatherEnabled = localStorage.getItem('weatherEnabled');
+            if (savedWeatherEnabled !== null) {
+                weatherEnabled = savedWeatherEnabled === 'true';
+                document.getElementById('weather-toggle').checked = weatherEnabled;
+            }
+
+            speakMessage('欢迎使用语音播报系统！');
+            checkWebsiteAccess(websites);
+            speakCurrentTime();
+            if (weatherEnabled) fetchWeather();
+            speakRandomPoem(); 
+            setInterval(updateTime, 1000);
+
+        };
+    </script>
+</body>
+</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -532,279 +805,6 @@ $cpuFamily = preg_match('/^CPU family:\s+(.+)/m', $cpuInfo, $matches);
                     speakMessage('加载默认歌单时出错'); 
                 });
         }
-    </script>
-</body>
-</html>
-
-<?php
-date_default_timezone_set('Asia/Shanghai');
-?>
-
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>语音播报系统</title>
-    <div style="display: flex; align-items: center;">
-    <label for="weather-toggle">天气播报</label>
-    <input type="checkbox" id="weather-toggle">
-    <p style="margin: 0;">当前城市：<span id="current-city">未设置</span></p>
-</div>
-
-</head>
-<body>
-    <script>
-        let city = 'Beijing'; 
-        const apiKey = 'fc8bd2637768c286c6f1ed5f1915eb22'; 
-        let weatherEnabled = true; 
-
-        function speakMessage(message) {
-            const utterance = new SpeechSynthesisUtterance(message);
-            utterance.lang = 'zh-CN';
-            speechSynthesis.speak(utterance);
-        }
-
-        function getGreeting() {
-            const hours = new Date().getHours();
-            if (hours >= 5 && hours < 12) return '早上好！';
-            if (hours >= 12 && hours < 18) return '下午好！';
-            if (hours >= 18 && hours < 22) return '晚上好！';
-            return '夜深了，注意休息！';
-        }
-
-        function speakCurrentTime() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            const currentTime = `${hours}点${minutes}分${seconds}秒`;
-
-            const timeOfDay = (hours >= 5 && hours < 8) ? '清晨'
-                              : (hours >= 8 && hours < 11) ? '早上'
-                              : (hours >= 11 && hours < 13) ? '中午'
-                              : (hours >= 13 && hours < 18) ? '下午'
-                              : (hours >= 18 && hours < 20) ? '傍晚'
-                              : (hours >= 20 && hours < 24) ? '晚上'
-                              : '凌晨';
-
-            speakMessage(`${getGreeting()} 现在是北京时间: ${timeOfDay}${currentTime}`);
-        }
-
-        function updateTime() {
-            const now = new Date();
-            const hours = now.getHours();
-            const timeOfDay = (hours >= 5 && hours < 8) ? '清晨'
-                              : (hours >= 8 && hours < 11) ? '早上'
-                              : (hours >= 11 && hours < 13) ? '中午'
-                              : (hours >= 13 && hours < 18) ? '下午'
-                              : (hours >= 18 && hours < 20) ? '傍晚'
-                              : (hours >= 20 && hours < 24) ? '晚上'
-                              : '凌晨';
-
-            if (now.getMinutes() === 0 && now.getSeconds() === 0) {
-                speakMessage(`整点播报，现在是北京时间 ${timeOfDay} ${hours}点`);
-            }
-        }
-
-        const websites = [
-            'https://www.youtube.com/',
-            'https://www.google.com/',
-            'https://www.facebook.com/',
-            'https://www.twitter.com/',
-            'https://www.github.com/'
-        ];
-
-        function getWebsiteStatusMessage(url, status) {
-            const statusMessages = {
-                'https://www.youtube.com/': status ? 'YouTube 网站访问正常。' : '无法访问 YouTube 网站，请检查网络连接。',
-                'https://www.google.com/': status ? 'Google 网站访问正常。' : '无法访问 Google 网站，请检查网络连接。',
-                'https://www.facebook.com/': status ? 'Facebook 网站访问正常。' : '无法访问 Facebook 网站，请检查网络连接。',
-                'https://www.twitter.com/': status ? 'Twitter 网站访问正常。' : '无法访问 Twitter 网站，请检查网络连接。',
-                'https://www.github.com/': status ? 'GitHub 网站访问正常。' : '无法访问 GitHub 网站，请检查网络连接。',
-            };
-
-            return statusMessages[url] || (status ? `${url} 网站访问正常。` : `无法访问 ${url} 网站，请检查网络连接。`);
-        }
-
-        function checkWebsiteAccess(urls) {
-            const statusMessages = [];
-            let requestsCompleted = 0;
-
-            urls.forEach(url => {
-                fetch(url, { mode: 'no-cors' })
-                    .then(response => {
-                        const isAccessible = response.type === 'opaque';
-                        statusMessages.push(getWebsiteStatusMessage(url, isAccessible));
-                        
-                        if (!isAccessible && url === 'https://www.youtube.com/') {
-                            speakMessage('无法访问 YouTube 网站，请检查网络连接。');
-                        }
-                    })
-                    .catch(() => {
-                        statusMessages.push(getWebsiteStatusMessage(url, false));
-                        
-                        if (url === 'https://www.youtube.com/') {
-                            speakMessage('无法访问 YouTube 网站，请检查网络连接。');
-                        }
-                    })
-                    .finally(() => {
-                        requestsCompleted++;
-                        if (requestsCompleted === urls.length) {
-                            speakMessage(statusMessages.join(' '));
-                        }
-                    });
-            });
-        }
-
-        function getRandomPoem() {
-            const poems = [
-                '红豆生南国，春来发几枝。', '独在异乡为异客，每逢佳节倍思亲。',
-                '海上生明月，天涯共此时。', '但愿人长久，千里共婵娟。',
-                '江南好，风景旧曾谙。', '君不见黄河之水天上来，奔流到海不复回。',
-                '露从今夜白，月是故乡明。', '自古逢秋悲寂寥，我言秋日胜春朝。',
-                '两岸猿声啼不住，轻舟已过万重山。', '一去二三里，烟村四五家。',
-                '问君何为别，心逐青云行。', '风急天高猿啸哀，渚清沙白鸟飞回。',
-                '锦城虽云乐，不如早还家。', '白下驿穷冬望，红楼隔雨弄晴寒。',
-                '夜泊牛渚怀古，牛渚西江夜。', '空山新雨后，天气晚来秋。',
-                '山中相送罢，日暮掩柴扉。', '寒蝉凄切，对长亭晚，骤雨初歇。',
-                '湖上初晴后雨，水面晕开清晖。', '孤舟蓑笠翁，独钓寒江雪。',
-                '黄河远上白云间，一片孤城万仞山。', '松下问童子，言师采药去。',
-                '白云深处有人家，黄鹤楼中吹玉笛。', '枯藤老树昏鸦，小桥流水人家。',
-                '寒山转苍翠，秋水共长天一色。', '年年岁岁花相似，岁岁年年人不同。',
-                '锦江春色来天地，玉垒浮云变古今。', '天街小雨润如酥，草色遥看近却无。',
-                '长江绕郭知鱼美，苏堤春晓胜地宜。'
-            ];
-            return poems[Math.floor(Math.random() * poems.length)];
-        }
-
-        function speakRandomPoem() {
-            const poem = getRandomPoem();
-            speakMessage(`${poem}`);
-        }
-
-        function speakWeather(weather) {
-            if (!weatherEnabled) return; 
-
-            const descriptions = {
-                "clear sky": "晴天", "few clouds": "少量云", "scattered clouds": "多云",
-                "broken clouds": "多云", "shower rain": "阵雨", "rain": "雨", 
-                "light rain": "小雨", "moderate rain": "中雨", "heavy rain": "大雨",
-                "very heavy rain": "特大暴雨", "extreme rain": "极端降雨",
-                "thunderstorm": "雷暴", "thunderstorm with light rain": "雷阵雨", "thunderstorm with heavy rain": "强雷雨",
-                "snow": "雪", "light snow": "小雪", "moderate snow": "中雪", "heavy snow": "大雪",
-                "very heavy snow": "特大暴雪", "extreme snow": "极端降雪",
-                "sleet": "雨夹雪", "freezing rain": "冻雨", "mist": "薄雾",
-                "fog": "雾", "haze": "霾", "sand": "沙尘", "dust": "扬尘", "squall": "阵风",
-                "tornado": "龙卷风", "ash": "火山灰", "drizzle": "毛毛雨",
-                "overcast": "阴天", "partly cloudy": "局部多云", "cloudy": "多云",
-                "tropical storm": "热带风暴", "hurricane": "飓风", "cold": "寒冷", 
-                "hot": "炎热", "windy": "大风", "breezy": "微风", "blizzard": "暴风雪"
-            };
-
-            const weatherDescription = descriptions[weather.weather[0].description.toLowerCase()] || weather.weather[0].description;
-            const temperature = weather.main.temp;
-            const tempMax = weather.main.temp_max;
-            const tempMin = weather.main.temp_min;
-            const humidity = weather.main.humidity;
-            const windSpeed = weather.wind.speed;
-            const visibility = weather.visibility / 1000;
-
-            let message = `以下是今天${city}的天气预报：当前气温为${temperature}摄氏度，${weatherDescription}。` +
-                          `预计今天的最高气温为${tempMax}摄氏度，今晚的最低气温为${tempMin}摄氏度。`;
-
-            if (weather.rain && weather.rain['1h']) {
-                var rainProbability = weather.rain['1h'];
-                message += ` 接下来一小时有${rainProbability * 100}%的降雨概率。`;
-            } else if (weather.rain && weather.rain['3h']) {
-                var rainProbability = weather.rain['3h'];
-                message += ` 接下来三小时有${rainProbability * 100}%的降雨概率。`;
-            } else {
-                message += ' 今天降雨概率较低。';
-            }
-
-            message += ` 西南风速为每小时${windSpeed}米。` +
-                       ` 湿度为${humidity}%。`;
-
-            if (weatherDescription.includes('晴') || weatherDescription.includes('阳光明媚')) {
-                message += ` 紫外线指数适中，如果外出，请记得涂防晒霜。`;
-            } else if (weatherDescription.includes('雨') || weatherDescription.includes('阵雨') || weatherDescription.includes('雷暴')) {
-                message += ` 建议您外出时携带雨伞。`;
-            }
-
-            message += ` 能见度为${visibility}公里。` +
-                       `请注意安全，保持好心情，祝您有美好的一天！`;
-
-            speakMessage(message);
-        }
-
-        function fetchWeather() {
-            if (!weatherEnabled) return; 
-            
-            const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=zh_cn`; 
-            fetch(apiUrl)
-                .then(response => response.ok ? response.json() : Promise.reject('网络响应不正常'))
-                .then(data => {
-                    if (data.weather && data.main) {
-                        speakWeather(data);
-                    } else {
-                        console.error('无法获取天气数据');
-                    }
-                })
-                .catch(error => console.error('获取天气数据时出错:', error));
-        }
-
-        function saveCity() {
-            const cityInput = document.getElementById('city-input').value.trim();
-            const chineseCharPattern = /[\u4e00-\u9fff]/;
-            const startsWithUppercasePattern = /^[A-Z]/;
-            if (chineseCharPattern.test(cityInput)) {
-                speakMessage('请输入非中文的城市名称。');
-            } else if (!startsWithUppercasePattern.test(cityInput)) {
-                speakMessage('城市名称必须以大写英文字母开头。');
-            } else if (cityInput) {
-                const city = cityInput;
-                localStorage.setItem('city', city); 
-                document.getElementById('current-city').textContent = city;
-                speakMessage(`城市已保存为${city}，正在获取最新天气信息...`);
-                fetchWeather();
-            } else {
-                speakMessage('请输入有效的城市名称。');
-            }
-        }
-
-        document.getElementById('weather-toggle').addEventListener('change', (event) => {
-            weatherEnabled = event.target.checked;
-            localStorage.setItem('weatherEnabled', weatherEnabled); 
-            if (weatherEnabled) {
-                speakMessage('天气播报已启用。');
-                fetchWeather();
-            } else {
-                speakMessage('天气播报已关闭。');
-            }
-        });
-
-        window.onload = function() {
-            const savedCity = localStorage.getItem('city');
-            if (savedCity) {
-                city = savedCity;
-                document.getElementById('current-city').textContent = city;
-            }
-            
-            const savedWeatherEnabled = localStorage.getItem('weatherEnabled');
-            if (savedWeatherEnabled !== null) {
-                weatherEnabled = savedWeatherEnabled === 'true';
-                document.getElementById('weather-toggle').checked = weatherEnabled;
-            }
-
-            speakMessage('欢迎使用语音播报系统！');
-            checkWebsiteAccess(websites);
-            speakCurrentTime();
-            if (weatherEnabled) fetchWeather();
-            speakRandomPoem(); 
-            setInterval(updateTime, 1000);
-
-        };
     </script>
 </body>
 </html>

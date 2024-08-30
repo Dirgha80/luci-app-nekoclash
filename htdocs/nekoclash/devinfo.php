@@ -68,10 +68,12 @@ date_default_timezone_set('Asia/Shanghai');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>语音播报系统</title>
-    <div style="display: flex; align-items: center;">
-    <label for="weather-toggle">天气播报</label>
-    <input type="checkbox" id="weather-toggle">
-    <p style="margin: 0;">当前城市：<span id="current-city">未设置</span></p>
+  <div style="display: flex; align-items: center;">
+        <label for="weather-toggle" style="margin-right: 10px; font-weight: bold; color: #FF5733;">天气播报</label> 
+        <input type="checkbox" id="weather-toggle" style="margin-right: 20px;">
+        <p style="margin: 0; color: #00F;">
+            当前城市：
+            <span id="current-city" style="font-weight: bold; color: #33FF57;">未设置</span> 
 </div>
 
 </head>

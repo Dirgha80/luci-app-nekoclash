@@ -35,7 +35,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          ref: luci-app-nekoclash
+          ref: main
           
       - name: Preparing nekoclash
         run: |

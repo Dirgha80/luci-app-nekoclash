@@ -20,7 +20,7 @@ jobs:
       has_update: ${{ steps.check_version.outputs.has_update }}
     steps:
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@dev
         with:
           fetch-depth: 0
           ref: dev
@@ -83,7 +83,7 @@ jobs:
           echo "src-git-full routing https://git.openwrt.org/feed/routing.git;openwrt-23.05"  >> feeds.conf
           git clone -b dev https://github.com/${{ github.repository }}.git package/downloads/luci-app-nekoclash
           # chmod +x package/downloads/luci-app-nekoclash/root/etc/init.d/neko
-          ./scripts/feeds update -a
+         # ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_luci-app-nekoclash=m" > .config
           echo "CONFIG_LUCI_JSMIN=n" >> .config
           echo "CONFIG_LUCI_CSSTIDY=n" >> .config
@@ -113,11 +113,11 @@ jobs:
           cd ..
           echo "status=success" >> $GITHUB_OUTPUT
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-      - name: Generate new tag & release
-        uses: softprops/action-gh-release@v2.0.4
+      - name: Upload IPK to release
+        uses: softprops/action-gh-release@v1
+        if: steps.compile.outputs.status == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          prerelease: true
-          files: "./dev/luci-app-nekoclash*.ipk"
-          tag_name: "v${{ needs.Get-Version.outputs.version }}-beta"
+          tag_name: ${{needs.job_check.outputs.version}}
+          files: ${{ env.FIRMWARE }}/base/luci-app-*.ipk
